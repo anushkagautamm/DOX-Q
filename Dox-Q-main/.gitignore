@@ -1,0 +1,17 @@
+.venv
+.vscode
+.claude
+test_docs2
+
+# Secrets / credentials — never commit these
+.env
+*.env
+!.env.example
+atlas-credentials.env
+
+.DS_Store
+__pycache__/
+uploaded_pdfs/
+db/
+
+parsed_md.txt

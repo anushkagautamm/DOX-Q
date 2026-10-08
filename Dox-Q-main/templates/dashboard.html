@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>doXQ — Dashboard | Healthcare Policy RAG</title>
+    <meta name="description" content="Manage and query your healthcare policy documents with AI-powered analysis.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050a0e;
+            --bg-subtle: #0a1218;
+            --surface: rgba(13, 25, 35, 0.7);
+            --surface-solid: #0d1923;
+            --surface-hover: rgba(16, 32, 45, 0.8);
+            --border: rgba(6, 182, 212, 0.12);
+            --border-hover: rgba(6, 182, 212, 0.25);
+            --border-focus: rgba(6, 182, 212, 0.35);
+            --accent: #06b6d4;
+            --accent-secondary: #0d9488;
+            --accent-glow: rgba(6, 182, 212, 0.15);
+            --accent-dim: rgba(6, 182, 212, 0.08);
+            --text: #94a3b8;
+            --text-dim: #475569;
+            --text-bright: #e2e8f0;
+            --white: #f8fafc;
+            --green: #34d399;
+            --green-dim: rgba(52, 211, 153, 0.1);
+            --red: #f87171;
+            --red-dim: rgba(248, 113, 113, 0.1);
+            --yellow: #fbbf24;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(6, 182, 212, 0.04) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(6, 182, 212, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        /* ─── NAV ─────────────────────────────────────────── */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 32px;
+            background: rgba(5, 10, 14, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-logo {
+            width: 36px;
+            height: 36px;
+            border: 1.5px solid var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-dim);
+        }
+
+        .nav-logo svg {
+            width: 18px;
+            height: 18px;
+            color: var(--accent);
+        }
+
+        .nav-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: var(--accent-dim);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .user-badge .avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .logout-btn {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            border-radius: 8px;
+            color: var(--red);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: var(--red-dim);
+            border-color: rgba(248, 113, 113, 0.4);
+        }
+
+        /* ─── MAIN ────────────────────────────────────────── */
+        .main {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 32px 60px;
+        }
+
+        .page-header {
+            margin-bottom: 36px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        .page-header p {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        /* ─── UPLOAD SECTION ──────────────────────────────── */
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title svg {
+            width: 14px;
+            height: 14px;
+            color: var(--accent);
+        }
+
+        .upload-card {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.3;
+        }
+
+        .drop-zone {
+            border: 1.5px dashed var(--border);
+            border-radius: 12px;
+            padding: 36px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--border-hover);
+            background: var(--accent-dim);
+        }
+
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .drop-icon {
+            margin: 0 auto 14px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--accent-dim);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drop-icon svg {
+            width: 22px;
+            height: 22px;
+            color: var(--accent);
+            opacity: 0.6;
+        }
+
+        .drop-title {
+            font-size: 14px;
+            color: var(--text-bright);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .drop-sub {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .upload-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .file-name-box {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            min-height: 40px;
+        }
+
+        .file-name-box.has-file {
+            color: var(--text-bright);
+            border-color: var(--border-hover);
+        }
+
+        .file-name-box svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            color: var(--accent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .file-name-box.has-file svg {
+            opacity: 1;
+        }
+
+        .upload-btn {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            white-space: nowrap;
+        }
+
+        .upload-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Progress bar */
+        .progress-wrap {
+            display: none;
+            margin-top: 16px;
+        }
+
+        .progress-wrap.visible {
+            display: block;
+        }
+
+        .progress-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-track {
+            height: 4px;
+            background: var(--bg);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill.indeterminate {
+            width: 40% !important;
+            animation: slide 1.2s ease-in-out infinite;
+        }
+
+        @keyframes slide {
+            0% {
+                transform: translateX(-150%);
+            }
+
+            100% {
+                transform: translateX(400%);
+            }
+        }
+
+        /* Toast inline */
+        .upload-toast {
+            margin-top: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: 'IBM Plex Mono', monospace;
+            display: none;
+        }
+
+        .upload-toast.show {
+            display: block;
+            animation: toastIn 0.3s ease;
+        }
+
+        .upload-toast.error {
+            background: var(--red-dim);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            color: var(--red);
+        }
+
+        .upload-toast.success {
+            background: var(--green-dim);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            color: var(--green);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ─── DOCUMENTS GRID ──────────────────────────────── */
+        .docs-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .doc-count {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .doc-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            transition: all 0.25s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .doc-card:hover {
+            border-color: var(--border-hover);
+            background: var(--surface-hover);
+        }
+
+        .doc-card.selected {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.08);
+        }
+
+        .doc-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .doc-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .doc-card.selected .doc-checkbox {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .doc-checkbox svg {
+            width: 12px;
+            height: 12px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .doc-card.selected .doc-checkbox svg {
+            opacity: 1;
+        }
+
+        .doc-delete {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .doc-delete:hover {
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        .doc-delete svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .doc-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--accent-dim);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .doc-icon svg {
+            width: 18px;
+            height: 18px;
+            color: var(--accent);
+        }
+
+        .doc-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .doc-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .doc-meta-item {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .doc-meta-item svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .chunk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: var(--accent-dim);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--accent);
+        }
+
+        /* ─── EMPTY STATE ─────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            border-radius: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-icon svg {
+            width: 28px;
+            height: 28px;
+            color: var(--text-dim);
+            opacity: 0.4;
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+        }
+
+        /* ─── ACTION BAR ──────────────────────────────────── */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 32px;
+            background: rgba(5, 10, 14, 0.9);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .action-bar.visible {
+            transform: translateY(0);
+        }
+
+        .action-bar-info {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--text);
+        }
+
+        .action-bar-info strong {
+            color: var(--accent);
+        }
+
+        .chat-btn {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.2);
+        }
+
+        .chat-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ─── CONFIRM MODAL ───────────────────────────────── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface-solid);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            width: 100%;
+            max-width: 360px;
+            animation: cardIn 0.3s ease;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal h3 {
+            font-size: 16px;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .modal p {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-cancel,
+        .modal-confirm {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .modal-cancel {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .modal-cancel:hover {
+            border-color: var(--border-hover);
+        }
+
+        .modal-confirm {
+            background: var(--red);
+            color: white;
+        }
+
+        .modal-confirm:hover {
+            opacity: 0.9;
+        }
+
+        /* ─── RESPONSIVE ──────────────────────────────────── */
+        @media (max-width: 640px) {
+            nav {
+                padding: 12px 16px;
+            }
+
+            .main {
+                padding: 24px 16px 80px;
+            }
+
+            .upload-card {
+                padding: 20px;
+            }
+
+            .upload-footer {
+                flex-direction: column;
+            }
+
+            .upload-btn {
+                width: 100%;
+            }
+
+            .docs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-bar {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-left">
+            <div class="nav-logo">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+                </svg>
+            </div>
+            <span class="nav-title">doXQ</span>
+        </div>
+        <div class="nav-right">
+            <div class="user-badge" id="user-badge">
+                <div class="avatar" id="user-avatar">?</div>
+                <span id="user-name">loading...</span>
+            </div>
+            <button class="logout-btn" id="logout-btn">Logout</button>
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="page-header">
+            <h1>Policy Documents</h1>
+            <p>Upload and manage healthcare policy documents for AI-powered analysis</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="section-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+            </svg>
+            Upload New Document
+        </div>
+
+        <div class="upload-card">
+            <div class="drop-zone" id="drop-zone">
+                <input type="file" id="pdf-input" accept=".pdf">
+                <div class="drop-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                </div>
+                <p class="drop-title">Drop your healthcare policy PDF here</p>
+                <p class="drop-sub">or click to browse · PDF only</p>
+            </div>
+
+            <div class="upload-footer">
+                <div class="file-name-box" id="file-name-box">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    <span id="file-name-text">No file selected</span>
+                </div>
+                <button class="upload-btn" id="upload-btn" disabled>Upload & Embed</button>
+            </div>
+
+            <div class="progress-wrap" id="progress-wrap">
+                <div class="progress-label">
+                    <span id="progress-label-text">Processing...</span>
+                    <span id="progress-stage">—</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill indeterminate" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="upload-toast" id="upload-toast"></div>
+        </div>
+
+        <!-- Documents Section -->
+        <div class="docs-header">
+            <div class="section-title" style="margin-bottom: 0;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                </svg>
+                Your Documents
+            </div>
+            <span class="doc-count" id="doc-count">0 documents</span>
+        </div>
+
+        <div id="docs-container">
+            <div class="empty-state" id="empty-state">
+                <div class="empty-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                </div>
+                <h3>No documents yet</h3>
+                <p>Upload a healthcare policy PDF to get started</p>
+            </div>
+            <div class="docs-grid" id="docs-grid" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Action Bar (slides up when docs are selected) -->
+    <div class="action-bar" id="action-bar">
+        <div class="action-bar-info">
+            <strong id="selected-count">0</strong> document(s) selected for querying
+        </div>
+        <button class="chat-btn" id="chat-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+            </svg>
+            Start Chat
+        </button>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal">
+            <h3>Delete Document</h3>
+            <p>This will permanently remove the document and all its embeddings. This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="modal-cancel" id="modal-cancel">Cancel</button>
+                <button class="modal-confirm" id="modal-confirm">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── State ──────────────────────────────────────────────────────
+        let selectedDocIds = new Set();
+        let deleteTargetId = null;
+        let documents = [];
+
+        // ── DOM refs ───────────────────────────────────────────────────
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('pdf-input');
+        const fileNameBox = document.getElementById('file-name-box');
+        const fileNameText = document.getElementById('file-name-text');
+        const uploadBtn = document.getElementById('upload-btn');
+        const progressWrap = document.getElementById('progress-wrap');
+        const progressFill = document.getElementById('progress-fill');
+        const progressLbl = document.getElementById('progress-label-text');
+        const progressStage = document.getElementById('progress-stage');
+        const uploadToast = document.getElementById('upload-toast');
+        const docsGrid = document.getElementById('docs-grid');
+        const emptyState = document.getElementById('empty-state');
+        const docCount = document.getElementById('doc-count');
+        const actionBar = document.getElementById('action-bar');
+        const selectedCountEl = document.getElementById('selected-count');
+        const chatBtn = document.getElementById('chat-btn');
+        const deleteModal = document.getElementById('delete-modal');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        let selectedFile = null;
+
+        // ── Init ───────────────────────────────────────────────────────
+        async function init() {
+            // Load user info
+            try {
+                const res = await fetch('/api/me');
+                if (!res.ok) { window.location.href = '/login'; return; }
+                const data = await res.json();
+                document.getElementById('user-name').textContent = data.user.username;
+                document.getElementById('user-avatar').textContent = data.user.username.charAt(0).toUpperCase();
+            } catch { window.location.href = '/login'; return; }
+
+            loadDocuments();
+        }
+
+        async function loadDocuments() {
+            try {
+                const res = await fetch('/api/documents');
+                const data = await res.json();
+                documents = data.documents || [];
+                renderDocuments();
+            } catch (err) {
+                console.error('Failed to load documents:', err);
+            }
+        }
+
+        function renderDocuments() {
+            docCount.textContent = `${documents.length} document${documents.length !== 1 ? 's' : ''}`;
+
+            if (documents.length === 0) {
+                emptyState.style.display = 'block';
+                docsGrid.style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            docsGrid.style.display = 'grid';
+            docsGrid.innerHTML = '';
+
+            documents.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = `doc-card${selectedDocIds.has(doc.id) ? ' selected' : ''}`;
+                card.dataset.id = doc.id;
+
+                const uploadDate = doc.upload_date ? new Date(doc.upload_date).toLocaleDateString('en-US', {
+                    month: 'short', day: 'numeric', year: 'numeric'
+                }) : '—';
+
+                card.innerHTML = `
+                    <div class="doc-card-top">
+                        <div class="doc-checkbox">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
+                        </div>
+                        <button class="doc-delete" data-id="${doc.id}" title="Delete document">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="doc-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
+                    </div>
+                    <div class="doc-name">${escapeHtml(doc.original_name)}</div>
+                    <div class="doc-meta">
+                        <div class="doc-meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                            ${uploadDate}
+                        </div>
+                        <div class="chunk-badge">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6Z" /></svg>
+                            ${doc.chunk_count} chunks
+                        </div>
+                    </div>
+                `;
+
+                // Click card to toggle selection (but not if clicking delete)
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.doc-delete')) return;
+                    toggleDocSelection(doc.id, card);
+                });
+
+                // Delete button
+                card.querySelector('.doc-delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showDeleteModal(doc.id);
+                });
+
+                docsGrid.appendChild(card);
+            });
+        }
+
+        function toggleDocSelection(id, card) {
+            if (selectedDocIds.has(id)) {
+                selectedDocIds.delete(id);
+                card.classList.remove('selected');
+            } else {
+                selectedDocIds.add(id);
+                card.classList.add('selected');
+            }
+            updateActionBar();
+        }
+
+        function updateActionBar() {
+            const count = selectedDocIds.size;
+            selectedCountEl.textContent = count;
+            if (count > 0) {
+                actionBar.classList.add('visible');
+            } else {
+                actionBar.classList.remove('visible');
+            }
+        }
+
+        // ── Upload ─────────────────────────────────────────────────────
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const f = e.dataTransfer.files[0];
+            if (f && f.name.endsWith('.pdf')) setFile(f);
+            else showUploadToast('Only PDF files are supported.', 'error');
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files[0]) setFile(fileInput.files[0]);
+        });
+
+        function setFile(f) {
+            selectedFile = f;
+            fileNameText.textContent = f.name;
+            fileNameBox.classList.add('has-file');
+            uploadBtn.disabled = false;
+            hideUploadToast();
+        }
+
+        uploadBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            uploadBtn.disabled = true;
+            hideUploadToast();
+
+            // Show progress
+            progressLbl.textContent = 'Uploading & embedding...';
+            progressStage.textContent = '—';
+            progressFill.className = 'progress-fill indeterminate';
+            progressWrap.classList.add('visible');
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const res = await fetch('/api/upload-pdf', { method: 'POST', body: formData });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Upload failed');
+                }
+
+                const data = await res.json();
+
+                // Show success
+                progressFill.className = 'progress-fill';
+                progressFill.style.width = '100%';
+                progressLbl.textContent = 'Complete!';
+                progressStage.textContent = `${data.num_chunks} chunks`;
+
+                showUploadToast(`✓ ${data.num_chunks} chunks indexed from ${selectedFile.name}`, 'success');
+
+                // Reset upload
+                selectedFile = null;
+                fileNameText.textContent = 'No file selected';
+                fileNameBox.classList.remove('has-file');
+                fileInput.value = '';
+
+                setTimeout(() => {
+                    progressWrap.classList.remove('visible');
+                    progressFill.style.width = '0%';
+                }, 2000);
+
+                // Reload documents
+                loadDocuments();
+
+            } catch (err) {
+                progressWrap.classList.remove('visible');
+                showUploadToast(err.message, 'error');
+                uploadBtn.disabled = false;
+            }
+        });
+
+        function showUploadToast(msg, type) {
+            uploadToast.textContent = msg;
+            uploadToast.className = `upload-toast show ${type}`;
+        }
+
+        function hideUploadToast() {
+            uploadToast.className = 'upload-toast';
+        }
+
+        // ── Delete Modal ───────────────────────────────────────────────
+        function showDeleteModal(docId) {
+            deleteTargetId = docId;
+            deleteModal.classList.add('visible');
+        }
+
+        document.getElementById('modal-cancel').addEventListener('click', () => {
+            deleteModal.classList.remove('visible');
+            deleteTargetId = null;
+        });
+
+        document.getElementById('modal-confirm').addEventListener('click', async () => {
+            if (!deleteTargetId) return;
+            try {
+                const res = await fetch(`/api/documents/${deleteTargetId}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Delete failed');
+
+                selectedDocIds.delete(deleteTargetId);
+                updateActionBar();
+                deleteModal.classList.remove('visible');
+                deleteTargetId = null;
+                loadDocuments();
+                showUploadToast('Document deleted.', 'success');
+            } catch (err) {
+                showUploadToast(err.message, 'error');
+                deleteModal.classList.remove('visible');
+            }
+        });
+
+        // ── Navigate to Chat ───────────────────────────────────────────
+        chatBtn.addEventListener('click', () => {
+            const ids = Array.from(selectedDocIds);
+            sessionStorage.setItem('selectedDocIds', JSON.stringify(ids));
+            window.location.href = '/chat';
+        });
+
+        // ── Logout ─────────────────────────────────────────────────────
+        logoutBtn.addEventListener('click', async () => {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login';
+        });
+
+        // ── Utils ──────────────────────────────────────────────────────
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ── Boot ───────────────────────────────────────────────────────
+        init();
+    </script>
+</body>
+
+</html>

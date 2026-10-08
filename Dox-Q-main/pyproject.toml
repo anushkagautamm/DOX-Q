@@ -1,0 +1,27 @@
+[project]
+name = "hackrx"
+version = "2.0.0"
+description = "doXQ — Healthcare Policy RAG with MongoDB Atlas-backed embeddings"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "accelerate>=1.9.0",
+    "bcrypt>=4.2.0",
+    "fastapi>=0.128.0",
+    "ipykernel>=6.30.0",
+    "ipywidgets>=8.1.7",
+    "itsdangerous>=2.2.0",
+    "jinja2>=3.1.6",
+    "langchain>=0.3.27",
+    "langchain-community>=0.3.27",
+    "langchain-ollama>=0.3.6",
+    "nest-asyncio>=1.6.0",
+    "numpy>=1.26.0",
+    "pymongo[srv]>=4.6,<5",
+    "pypdf>=5.9.0",
+    "python-dotenv>=1.1.1",
+    "python-multipart>=0.0.21",
+    "sentence-transformers>=5.5.1",
+    "torch>=2.7.1",
+    "uvicorn>=0.35.0",
+]
